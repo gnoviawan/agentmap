@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/hero.svg" alt="agentmap — ~98% fewer tokens to understand a codebase (up to 99.9% per task)" width="100%">
+  <img src="assets/hero.png" alt="agentmap — ~98% token savings to understand a codebase (up to 99.9% per task)" width="100%">
 </p>
 
 # agentmap
