@@ -13,11 +13,18 @@
 //  Near-zero deps (ts-morph only). Runs in the target repo's cwd.
 //  Algorithm credit: Aider's repo map (Apache-2.0) — github.com/Aider-AI/aider
 // ============================================================================
-import { Project, SyntaxKind } from "ts-morph";
-const CallExpression = SyntaxKind.CallExpression;
 import { writeFileSync, readFileSync, existsSync, mkdirSync, renameSync, readdirSync, statSync, chmodSync } from "node:fs";
 import { execSync, execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
+
+// Lazy ts-morph: its ~105ms module init only fires on a COLD rebuild. Warm cache
+// queries (the common case) never construct a Project, so they skip the load
+// entirely (~2x faster warm). createRequire keeps it synchronous — no async to
+// thread through build()/makeProject().
+const _require = createRequire(import.meta.url);
+let _tsm = null;
+const tsMorph = () => (_tsm ??= _require("ts-morph"));
 
 const MAP = ".claude/agentmap.json";
 const SCHEMA_VERSION = 2;
@@ -177,6 +184,7 @@ function identMul(ident, defineCount, mentioned) {
 // else (missing / malformed / solution-style references that index 0 files) fall
 // back to broad source globs so the tool degrades gracefully instead of crashing.
 function makeProject() {
+  const { Project } = tsMorph();
   // skipFileDependencyResolution: ~40% faster build, verified identical edge
   // set (we resolve module specifiers explicitly below, never via the implicit
   // dependency graph). allowJs so .js/.jsx are parsed.
@@ -248,6 +256,8 @@ function makeProject() {
 function build() {
   const t0 = Date.now();
   const project = makeProject();
+  const { SyntaxKind } = tsMorph();
+  const CallExpression = SyntaxKind.CallExpression;
   const cwd = process.cwd().replace(/\\/g, "/");
   const rel = (p) => p.replace(cwd + "/", "");
   const files = {}, dependents = {}, features = {};
@@ -534,14 +544,13 @@ function fileBlock(key, f) {
 
 // ---------------------------------------------------------------------------
 // --install-hooks: copy the package post-commit hook into .git/hooks, ensure
-// .claude/agentmap.json is gitignored, and print the Claude Code PreToolUse
-// snippet (mirrors hooks/INSTALL.md). Throws on any failure so the caller can
-// stderr+exit 1. Resolves the package hooks/ dir relative to THIS script so it
-// works whether agentmap is run locally, via npx, or globally installed.
+// .claude/agentmap.json is gitignored, and auto-wire the Claude Code
+// PreToolUse(Grep) nudge into the project's .claude/settings.json so map
+// enforcement is ON by default (no manual copy-paste). Merge-safe + idempotent.
+// Throws on any failure so the caller can stderr+exit 1.
 // ---------------------------------------------------------------------------
 function installHooks() {
   const src = new URL("./hooks/post-commit", import.meta.url);
-  const nudge = new URL("./hooks/agentmap-nudge.mjs", import.meta.url);
   // The package hooks/ dir must ship alongside agentmap.mjs.
   if (!existsSync(src)) throw new Error(`packaged hook not found at ${src.pathname} (is the hooks/ dir present?)`);
 
@@ -565,14 +574,36 @@ function installHooks() {
     writeFileSync(".gitignore", IGNORE_LINE + "\n");
   }
 
-  // Success report + the ready-to-paste PreToolUse snippet (points node at the
-  // installed nudge — use its absolute path so it resolves from any cwd).
+  // Auto-wire the PreToolUse(Grep) enforcement nudge into the PROJECT settings
+  // (.claude/settings.json) so "the agent is forced to use the map" is ON by
+  // default — not a manual paste. Merge-safe + idempotent: preserves any
+  // existing settings/hooks, never duplicates our entry. Uses a project-relative
+  // command so a committed settings.json stays portable across machines.
+  const NUDGE_CMD = "node node_modules/@raymondchins/agentmap/hooks/agentmap-nudge.mjs";
+  const settingsPath = ".claude/settings.json";
+  let settings = {};
+  if (existsSync(settingsPath)) {
+    try { settings = JSON.parse(readFileSync(settingsPath, "utf8")) || {}; }
+    catch { throw new Error(`${settingsPath} is not valid JSON — fix or remove it, then re-run --install-hooks`); }
+  }
+  settings.hooks ??= {};
+  settings.hooks.PreToolUse ??= [];
+  const alreadyWired = settings.hooks.PreToolUse.some(
+    (e) => Array.isArray(e?.hooks) && e.hooks.some((h) => typeof h?.command === "string" && h.command.includes("agentmap-nudge")),
+  );
+  if (!alreadyWired) {
+    settings.hooks.PreToolUse.push({ matcher: "Grep", hooks: [{ type: "command", command: NUDGE_CMD }] });
+    mkdirSync(".claude", { recursive: true });
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+  }
+
+  // Success report.
   console.log(`installed post-commit hook → ${dest}`);
   console.log(ignoredAlready ? `.gitignore already has ${IGNORE_LINE}` : `added ${IGNORE_LINE} to .gitignore`);
-  console.log("\nAdd this to your .claude/settings.json to enable the PreToolUse(Grep) nudge:\n");
-  console.log(JSON.stringify({
-    hooks: { PreToolUse: [{ matcher: "Grep", hooks: [{ type: "command", command: `node ${nudge.pathname}` }] }] },
-  }, null, 2));
+  console.log(alreadyWired
+    ? `${settingsPath} already wires the PreToolUse(Grep) → agentmap nudge — left as-is`
+    : `wired PreToolUse(Grep) → agentmap nudge into ${settingsPath} (map enforcement on by default)`);
+  console.log("\nDone — the map auto-refreshes on commit, and greps are nudged to agentmap first.");
 }
 
 // ---------------------------------------------------------------------------

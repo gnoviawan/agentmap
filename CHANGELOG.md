@@ -3,6 +3,20 @@
 All notable changes to agentmap are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.2] - 2026-06-13
+
+### Changed
+- **`--install-hooks` now auto-wires the `PreToolUse(Grep)` nudge into the project's
+  `.claude/settings.json`** (merge-safe + idempotent) instead of only printing the
+  snippet — so the "agent is forced to use the map" enforcement is on by default
+  after install, with no manual copy-paste step.
+
+### Performance
+- **Lazy-load `ts-morph`.** Its ~105 ms compiler init now fires only on a cold
+  rebuild; warm cache queries (the common case on a clean tree) skip it entirely via
+  `createRequire`, making them ~2× faster — measured **217 ms → 105 ms** median
+  (−52%) on a clean-tree fixture. Cold-build time is unchanged.
+
 ## [0.2.1] - 2026-06-13
 
 ### Changed
@@ -54,5 +68,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   enumeration (replacing an expensive full-tree FS glob) make a full build net faster
   than v0.1.0 while indexing the same-or-more files.
 
+[0.2.2]: https://github.com/raymondchins/agentmap/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/raymondchins/agentmap/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/raymondchins/agentmap/compare/v0.1.0...v0.2.0

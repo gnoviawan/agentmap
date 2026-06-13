@@ -121,8 +121,10 @@ agentmap --install-hooks
 ```
 
 This copies `hooks/post-commit` to `.git/hooks/post-commit`, chmods it, ensures
-`.claude/agentmap.json` is in `.gitignore`, and prints the Claude Code
-`settings.json` PreToolUse snippet — all in one step.
+`.claude/agentmap.json` is in `.gitignore`, and auto-wires the Claude Code
+`PreToolUse(Grep)` nudge into `.claude/settings.json` (merge-safe — preserves
+existing settings, idempotent on re-run) — enforcement on by default, all in one
+step. No manual paste needed.
 
 **Manual alternative:**
 

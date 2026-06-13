@@ -339,7 +339,7 @@ $ node agentmap.mjs --print | jq '.hubs[0]'
 | `--help` / `-h` | Print a usage block listing every flag and exit 0. |
 | `--version` / `-v` | Print the version from `package.json` and exit 0. |
 | `--json` | **Global modifier.** When present, every command prints exactly one JSON object to stdout (no prose). Shapes vary per command: `--json --hubs` → `{command,fileCount,sha,hubs:[string]}`, `--json --find X` → `{command,query,matches:[{file,name,kind}]}`, `--json --relates X` → `{command,file,pagerank,exports,imports,dependents,related}`, `--json --any X` → `{command,query,kind,…payload}`, etc. Bare `--json` (no query flag) → `{command:"build",fileCount,features,topHub}`. |
-| `--install-hooks` | Copy `hooks/post-commit` into `.git/hooks/` (chmod 0755), ensure `.claude/agentmap.json` is in `.gitignore`, and print the Claude Code `settings.json` `PreToolUse` snippet. Exit 0 on success, stderr + exit 1 on failure. |
+| `--install-hooks` | Copy `hooks/post-commit` into `.git/hooks/` (chmod 0755), ensure `.claude/agentmap.json` is in `.gitignore`, and auto-wire the Claude Code `PreToolUse(Grep)` nudge into `.claude/settings.json` (merge-safe + idempotent). Exit 0 on success, stderr + exit 1 on failure. |
 | `--mcp` | Start agentmap as a **stdio MCP server** so non-Claude-Code agents (Cursor, Cline, any MCP client) can call every flag as a first-class tool. |
 
 **Exit-code contract:** `0` = success / match / help / version; `1` = query returned zero results (`--any`, `--find`, `--relates`, `--feature` with no match); `2` = usage error (missing required arg, unknown flag). Any token starting with `-` that matches no known flag prints an error to stderr and exits 2.
@@ -365,8 +365,9 @@ npx @raymondchins/agentmap --install-hooks
 ```
 
 This copies `hooks/post-commit` into `.git/hooks/`, sets it executable, ensures
-`.claude/agentmap.json` is in `.gitignore`, and prints the `.claude/settings.json`
-snippet for the `PreToolUse` nudge hook (below). Manual alternative:
+`.claude/agentmap.json` is in `.gitignore`, and **auto-wires the `PreToolUse` nudge
+hook into `.claude/settings.json`** (merge-safe + idempotent) so map enforcement is
+on by default — no manual paste. Manual alternative for just the post-commit hook:
 
 ```bash
 # from your repo root
@@ -385,7 +386,9 @@ reuse search, it injects a reminder steering the agent to `agentmap --any` first
 denies the grep, and stays silent for raw-string / Tailwind-class / lowercase-HTML-tag
 sweeps — so it's high-signal, not nagging.
 
-Wire it up in `.claude/settings.json`:
+`--install-hooks` writes this into `.claude/settings.json` for you (merge-safe — it
+preserves existing settings and won't duplicate on re-run). For reference, or to wire
+it by hand:
 
 ```json
 {
