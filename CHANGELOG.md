@@ -3,7 +3,7 @@
 All notable changes to agentmap are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.0] - 2026-06-13
 
 ### Added
 - **New CLI flags**: `--help` / `-h`, `--version` / `-v`, `--json` (global output modifier),
@@ -39,4 +39,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `hooks/`, `LICENSE-APACHE`, and `NOTICE`.
 - `.npmignore` removed — the `files` allowlist fully governs the tarball.
 
-[Unreleased]: https://github.com/raymondchins/agentmap/compare/v0.1.0...HEAD
+### Performance
+- Faster cold builds: `skipFileDependencyResolution` plus `git ls-files`-based source
+  enumeration (replacing an expensive full-tree FS glob) make a full build net faster
+  than v0.1.0 while indexing the same-or-more files.
+
+[0.2.0]: https://github.com/raymondchins/agentmap/compare/v0.1.0...v0.2.0
