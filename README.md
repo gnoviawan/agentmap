@@ -6,16 +6,17 @@
 
 **The repo map your coding agent is _forced_ to use — ~98% fewer tokens to understand your TS/JS codebase.**
 
-Your AI coding agent doesn't actually *know* your codebase. Every session it re-learns it
-from scratch — opening files and running grep after grep just to figure out what connects to
-what, burning thousands of tokens (and your money) before it writes a single line. agentmap
-hands it the answer instead: a ranked map of your whole repo it can query in one shot.
+Your AI coding agent doesn't actually *know* your codebase — every session it re-learns it by
+opening files and running grep after grep just to figure out what connects to what, burning
+thousands of tokens (and your money) before it writes a single line. agentmap fixes that: it's
+a **queryable, ranked code-relationship map for TypeScript/JavaScript repos** the agent queries
+in one shot instead.
 
-The payoff: it answers "understand the codebase" questions in **~98% fewer tokens on average**
-(up to **99.9% per task**) than reading raw files. Under the hood — personalized PageRank
-importance, Aider-style symbol ranking, a token-budgeted digest, and a single `--any` router
-(file → symbol → feature → live git-grep) — all wired straight into the agent loop so it
-actually gets used, not just published.
+The payoff: "understand the codebase" questions answered in **~98% fewer tokens on average**
+(up to **99.9% per task**) vs reading raw files — via personalized PageRank importance,
+Aider-style symbol ranking, a token-budgeted digest, and a single `--any` router (file → symbol
+→ feature → live git-grep), all wired into the agent loop so it actually gets used, not just
+published.
 
 [![npm](https://img.shields.io/npm/v/@raymondchins/agentmap)](https://www.npmjs.com/package/@raymondchins/agentmap)
 [![CI](https://github.com/raymondchins/agentmap/actions/workflows/ci.yml/badge.svg)](https://github.com/raymondchins/agentmap/actions/workflows/ci.yml)
