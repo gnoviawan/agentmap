@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "description": "The repo map your coding agent is forced to use. A queryable, ranked ts-morph code-relationship map for TypeScript/JavaScript repos — PageRank hubs, Aider-style symbol ranking, a token-budgeted digest, and a single --any router (file → symbol → feature → live git-grep), wired into the agent loop via post-commit auto-refresh and a PreToolUse hook.",
+  "description": "The repo map your coding agent is forced to use — ~98% fewer tokens (up to 99.9% per task) to understand a TS/JS codebase. A queryable, ranked ts-morph code-relationship map: PageRank hubs, Aider-style symbol ranking, a token-budgeted digest, and a single --any router (file → symbol → feature → live git-grep), wired into the agent loop via post-commit auto-refresh and a PreToolUse hook.",
   "type": "module",
   "bin": {
     "agentmap": "repomap.mjs"

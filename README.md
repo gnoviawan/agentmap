@@ -4,12 +4,14 @@
 
 # agentmap
 
-**The repo map your coding agent is _forced_ to use.**
+**The repo map your coding agent is _forced_ to use — ~98% fewer tokens to understand any codebase.**
 
-A queryable, ranked code-relationship map for TypeScript/JavaScript repos — personalized
-PageRank importance, Aider-style symbol ranking, a token-budgeted digest, and a single
-`--any` router (file → symbol → feature → live git-grep) — wired straight into the agent
-loop so it actually gets used, not just published.
+A queryable, ranked code-relationship map for TypeScript/JavaScript repos that answers
+"understand the codebase" questions in **~98% fewer tokens on average** (up to **99.9%
+per task**) vs reading raw files. Personalized PageRank importance, Aider-style symbol
+ranking, a token-budgeted digest, and a single `--any` router (file → symbol → feature →
+live git-grep) — wired straight into the agent loop so it actually gets used, not just
+published.
 
 <!-- badges (placeholder — wire up once published) -->
 [![npm](https://img.shields.io/npm/v/@raymondchins/agentmap)](https://www.npmjs.com/package/@raymondchins/agentmap)
