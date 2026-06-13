@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# ============================================================================
+#  agentmap — git post-commit hook
+#
+#  Rebuilds .claude/repomap.json after each commit so the map an agent reads is
+#  never stale. Runs in the background and detached so it never slows the commit.
+#
+#  Guards:
+#   - Skips during rebase / merge / cherry-pick / bisect (avoids rebuilding on
+#     every replayed commit — the map rebuilds once the operation finishes and
+#     you commit normally).
+#   - No-ops cleanly if Node or repomap.mjs is missing.
+#
+#  Install: copy to .git/hooks/post-commit and `chmod +x` it (see hooks/INSTALL.md).
+# ============================================================================
+
+# Resolve the repo root from the hook's own location (.git/hooks/post-commit).
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+GITDIR="$(git rev-parse --git-dir 2>/dev/null)" || exit 0
+
+# Guard: don't rebuild while a multi-commit operation is replaying commits.
+for state in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD BISECT_LOG REVERT_HEAD; do
+  if [ -e "$GITDIR/$state" ]; then
+    exit 0
+  fi
+done
+
+# Locate the builder: prefer a local repomap.mjs, else the installed `agentmap`.
+RUNNER=""
+if [ -f "$ROOT/repomap.mjs" ]; then
+  RUNNER="node $ROOT/repomap.mjs"
+elif [ -f "$ROOT/scripts/repomap.mjs" ]; then
+  RUNNER="node $ROOT/scripts/repomap.mjs"
+elif command -v agentmap >/dev/null 2>&1; then
+  RUNNER="agentmap"
+elif command -v npx >/dev/null 2>&1; then
+  RUNNER="npx --no-install agentmap"
+else
+  exit 0
+fi
+
+# Need Node for the .mjs paths.
+case "$RUNNER" in
+  node*) command -v node >/dev/null 2>&1 || exit 0 ;;
+esac
+
+# Rebuild detached + silenced so the commit returns instantly.
+(
+  cd "$ROOT" || exit 0
+  $RUNNER >/dev/null 2>&1
+) &
+
+exit 0

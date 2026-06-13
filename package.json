@@ -1,0 +1,54 @@
+{
+  "name": "@raymondchins/agentmap",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "The repo map your coding agent is forced to use. A queryable, ranked ts-morph code-relationship map for TypeScript/JavaScript repos — PageRank hubs, Aider-style symbol ranking, a token-budgeted digest, and a single --any router (file → symbol → feature → live git-grep), wired into the agent loop via post-commit auto-refresh and a PreToolUse hook.",
+  "type": "module",
+  "bin": {
+    "agentmap": "./repomap.mjs"
+  },
+  "main": "repomap.mjs",
+  "files": [
+    "repomap.mjs"
+  ],
+  "scripts": {
+    "map": "node repomap.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ts-morph": "28.0.0"
+  },
+  "keywords": [
+    "repo-map",
+    "repomap",
+    "code-map",
+    "ts-morph",
+    "typescript",
+    "javascript",
+    "pagerank",
+    "static-analysis",
+    "ast",
+    "code-graph",
+    "dependency-graph",
+    "ai-agent",
+    "coding-agent",
+    "llm",
+    "claude",
+    "aider",
+    "context"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raymondchins/agentmap.git"
+  },
+  "homepage": "https://github.com/raymondchins/agentmap#readme",
+  "bugs": {
+    "url": "https://github.com/raymondchins/agentmap/issues"
+  },
+  "author": "Raymond Surya Chin",
+  "license": "MIT"
+}
