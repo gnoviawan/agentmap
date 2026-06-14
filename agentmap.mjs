@@ -348,7 +348,10 @@ function makeProject() {
         for (const name of readdirSync(dir)) {
           if (name === "node_modules" || name === ".git" || name === ".next") continue;
           const full = dir + "/" + name;
-          let st; try { st = statSync(full); } catch { continue; }
+          // lstatSync (NOT statSync) + skip symlinks, matching sourceFingerprint():
+          // a circular symlink would otherwise recurse until the stack overflows.
+          let st; try { st = lstatSync(full); } catch { continue; }
+          if (st.isSymbolicLink()) continue;
           if (st.isDirectory()) walk(full);
           else if (name.endsWith(".vue")) vueFiles.push(full.replace(/^\.\//, ""));
         }
